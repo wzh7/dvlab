@@ -10,6 +10,7 @@ from tenacity import (
 openai.api_key = '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'
 # 提示词
 prompt = "请不要有额外的回复内容，我给你数据，请用{'value':1000, 'name': '名字'}的格式回复我"
+# prompt = "你好"
 print("\033[93m[GPT]\033[0m提示词：" + prompt)
 
 # 指数增长重试时间1秒到60秒，最大重试次数为6次
@@ -22,11 +23,14 @@ def gpt(content:str):
                                     {"role":"system","content":prompt}])
     print("\033[93m[GPT]\033[0m回复：" + response['choices'][0]['message']['content'])
 
-def gen_mbti():
-    gpt("")
+def gpt_talk(content:str):
+    try:
+        gpt(content)
+    except Exception as e:
+        print("\033[93m[GPT]\033[91m错误：", e, "\033[0m")
 
 
 if __name__ == '''__main__''':
     while(True):
         content = input("\033[93m[GPT]\033[0m输入：")
-        gpt(content)
+        gpt_talk(content)
