@@ -42,6 +42,9 @@ def pie_data():
     
     return Response(json.dumps(data_list), mimetype='application/json')
 
+def run_flask():
+    app.run(host='127.0.0.1', port=5000, debug=False)
+
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=5000,debug=True)
+    run_flask()
 

@@ -1,18 +1,31 @@
-import json
-from flask_cors import *
-from flask import Flask,render_template,request,Response,redirect,url_for
+# ==== ============ ==== #
+# ====     Main     ==== #
+# ==== ============ ==== #
 
-# 导入蓝图
-app = Flask(__name__)
-# 跨域
-CORS(app, supports_credentials=True)
+import time
+import threading
+import wzh.ai as ai
+import wzh.log as log
+import echarts_test as et
+import gradio_test as gr
 
-# 路由
-# 首页
-@app.route('/',methods=['GET','POST'])
-def index():
-    return render_template('index.html')
+event = threading.Event()
 
-# 运行
-if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=5000,debug=True)
+class FlaskThread(threading.Thread):
+    
+    def run(self) -> None:
+        log.info("线程管理", "线程-Flask网页 开始运行")
+        et.run_flask() # 运行Flask网页
+        
+class AIThread(threading.Thread):
+    
+    def run(self) -> None:
+        log.info("线程管理", "线程-ChatGPT网页 开始运行")
+        gr.run_gradio() # 运行ChatGPT网页
+
+if __name__ == '__main__':
+    log.info("系统", "欢迎使用ChatEase，正在启动程序...")
+    t = FlaskThread()
+    b = AIThread()
+    t.start()
+    b.start()

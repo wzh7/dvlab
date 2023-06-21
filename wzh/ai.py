@@ -8,11 +8,10 @@ from tenacity import (
 import wzh.log as log
 
 # AI库的API Key
-openai.api_key = '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'
+openai.api_key = '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'
 # 提示词
 prompt = "请不要有额外的回复内容，我给你数据，请用{'value':1000, 'name': '名字'}的格式回复我"
 # prompt = "你好"
-log.info("GPT", "提示词为 '" + prompt+"' ")
 
 # 指数增长重试时间1秒到60秒，最大重试次数为6次
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -23,15 +22,19 @@ def gpt(content:str):
                                     {"role":"user","content":content},
                                     {"role":"system","content":prompt}])
     log.info("GPT", response['choices'][0]['message']['content'])
+    return response['choices'][0]['message']['content']
 
 def gpt_talk(content:str):
     try:
-        gpt(content)
+        reply = gpt(content)
+        return reply
     except Exception as e:
         log.error("GPT", e)
 
-
-if __name__ == '''__main__''':
+def run_chat():
     while(True):
         content = input("\033[93m[用户]\033[0m 输入 ：")
         gpt_talk(content)
+
+if __name__ == '''__main__''':
+    run_chat()
