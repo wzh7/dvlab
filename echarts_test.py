@@ -22,7 +22,7 @@ def bar_race():
 @app.route('/pie_data')
 def pie_data():
     data_list = {}
-    data_raw = db.Cmd("SELECT value,name FROM pie") 
+    data_raw = db.Cmd(True, "SELECT value,name FROM pie") 
 
     # 获取图例
     legend = [i[1] for i in data_raw if i[0] > 6000]
