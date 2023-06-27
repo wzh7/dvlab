@@ -1,5 +1,9 @@
+import sys
+sys.path.append("util")
 import gradio as gr
-import wzh.ai as ai
+import ai
+import edge_tts as tts
+
 # import cv2
 
 # def to_black(image):
@@ -22,3 +26,4 @@ def run_gradio():
     gr.Interface(fn=ChatGPT_Bot, inputs=inputs, outputs=outputs, title="ChatGPT AI助理",
                 description="我是您的AI助理，您可以问任何你想知道的问题",
                 theme=gr.themes.Default()).launch(share=True)
+    

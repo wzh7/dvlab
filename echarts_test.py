@@ -1,7 +1,9 @@
+import sys
+sys.path.append("util")
 import json
 from flask_cors import *
 from flask import Flask,render_template,request,Response,redirect,url_for
-import wzh.db as db
+import db
 
 # 导入蓝图
 app = Flask(__name__)

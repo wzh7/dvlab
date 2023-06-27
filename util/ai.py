@@ -5,10 +5,10 @@ from tenacity import (
     stop_after_attempt,
     wait_random_exponential,
 ) # 请求重试库
-import wzh.log as log
+import log
 
 # AI库的API Key
-openai.api_key = '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'
+openai.api_key = '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'
 # 提示词
 prompt = "请不要有额外的回复内容，我给你数据，请用{'value':1000, 'name': '名字'}的格式回复我"
 # prompt = "你好"
