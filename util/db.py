@@ -1,6 +1,6 @@
 import pymysql
 import json
-import wzh.log as log
+import log
 
 # 数据库连接信息
 host = "124.223.18.236"

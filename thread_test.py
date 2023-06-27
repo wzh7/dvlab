@@ -1,6 +1,8 @@
+import sys
+sys.path.append("util")
 import time
 import threading
-import wzh.log as log
+import log
 
 event = threading.Event()
 event.set()     # 设定Flag = True
