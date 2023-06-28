@@ -16,14 +16,14 @@
 
 ## 文旅问答平台
 
-
 ## TODO
 
 ### 基于gpt的Web可视化问答平台
 
-* chatglm-6B 外挂知识库
+* langchain-chatglm 基于本地知识库的gpt问答平台
 
-  * API
+  * 知识库构建
+  * 通过爬虫获取知识
 * Web 可视化展示
 
   * Flask + Ajax + Mysql 后端框架
