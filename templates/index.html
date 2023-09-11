@@ -2,19 +2,301 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
-    <!-- <?php include 'templates\header.html' ?> -->
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界非遗知识图谱</title>
+    <style>
+        /* 在CSS中设置左右布局 */
+        .container {
+            display: flex; /* 使用flex布局 */
+            justify-content: space-between; /* 左右对齐 */
+        }
 
+        /* 设置左侧SVG图表宽度 */
+        .svg-container {
+            width:70%; /* 左侧宽度占70% */
+        }
+
+        /* 设置右侧聊天窗口样式 */
+        #chat-window {
+            width: 30%; /* 右侧宽度占30% */
+            padding: 20px;
+            margin-right: 40px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            height: 600px;
+        }
+
+
+        /* 设置聊天历史记录容器的样式 */
+        #chat-history-container {
+            flex-grow: 1; /* 让聊天历史记录容器占据剩余空间 */
+            overflow-y: scroll; /* 启用垂直滚动条 */
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        /* 每条消息的样式 */
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px; /* 圆角 */
+            max-width: 70%; /* 限制消息宽度 */
+            word-wrap: break-word; /* 自动换行 */
+        }
+
+        /* 用户消息的样式 */
+        .user-message {
+            background-color: #007bff; /* 用户消息的背景色 */
+            color: white;
+            align-self: flex-start; /* 左对齐 */
+        }
+
+        /* ChatGPT的回复的样式 */
+        .bot-message {
+            background-color: #e5e5ea; /* ChatGPT的回复的背景色 */
+            align-self: flex-end; /* 右对齐 */
+        }
+
+        /* 设置输入区容器的样式，固定在底部 */
+        #chat-input-container {
+            width: 100%;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between; /* 水平分散对齐 */
+        }
+
+        /* 设置输入框的样式，包括圆角矩形 */
+        #user-input {
+            width: 70%;
+            padding: 5px;
+            border: none;
+            border-radius: 10px; /* 添加圆角 */
+            background-color: #f5f5f5;
+        }
+
+        /* 设置发送按钮的样式，包括圆角矩形 */
+        #send-button {
+            width: 28%;
+            padding: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px; /* 添加圆角 */
+            cursor: pointer;
+        }
+
+
+        /* 可以在这里添加样式以美化你的知识图谱 */
+        /* 例如，节点和链接的样式 */
+
+        /* 节点标签的样式 */
+        .label {
+            font-size: 12px;
+            fill: #333;
+            text-anchor: middle;
+            /* 添加描边效果 */
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        }
+
+        /* 连线的样式 */
+        .link {
+            stroke: #666; /* 连线颜色 */
+            stroke-opacity: 0.6; /* 连线不透明度 */
+            stroke-width: 1px; /* 连线宽度 */
+        }
+
+    </style>
+</head>
 <body>
-    <!-- <?php include 'templates\navbar.html' ?> -->
+    <h1 style="text-align: center;">世界非遗知识图谱</h1>
     <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h1>主页</h1>
-                <p>主页的内容从这里开始了。</p>
-            </div>
+        <div class="svg-container">
+            <svg width="1000" height="600"></svg>
         </div>
+        <div id="chat-window">
+            <div id="chat-history-container">
+                <div id="chat-history"></div>
+            </div>
+            <div id="chat-input-container">
+                <input type="text" id="user-input" placeholder="输入消息...">
+                <button id="send-button">发送</button>
+            </div>
+        </div>        
     </div>
-    <!-- <?php include 'templates\footer.html' ?> -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+
+        // 获取聊天窗口相关元素
+        var chatHistory = document.getElementById("chat-history");
+        var userInput = document.getElementById("user-input");
+        var sendButton = document.getElementById("send-button");
+
+        // 添加点击事件监听器，当用户点击发送按钮时触发
+        sendButton.addEventListener("click", function() {
+            sendMessage(userInput.value);
+        });
+
+        // 添加回车键事件监听器，当用户按下回车键时触发
+        userInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                sendMessage(userInput.value);
+            }
+        });
+
+        // 发送用户消息，并显示在聊天历史中
+        function sendMessage(message) {
+            if (message.trim() === "") {
+                return;
+            }
+
+            // 显示用户消息
+            chatHistory.innerHTML += '<div class="message user-message">' + message + '</div>';
+            userInput.value = "";
+
+            // 向ChatGPT-API发送用户消息，并处理响应
+            sendToChatGPT(message);
+        }
+
+        // 向ChatGPT-API发送用户消息
+        function sendToChatGPT(message) {
+            // 发送用户消息到ChatGPT-API，可以使用fetch或其他HTTP请求方式
+            // 示例中使用了fetch
+            fetch('/chatgpt-api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 显示ChatGPT的回复
+                chatHistory.innerHTML += '<div class="message bot-message">' + data.message + '</div>';
+            })
+            .catch(error => {
+                console.error('Error sending message to ChatGPT:', error);
+            });
+        }
+
+
+        // ===================================== 知识图谱部分 ====================================== //
+
+        // 从Flask传递的知识图谱数据
+        var knowledgeGraph = {{ knowledge_graph | tojson | safe }};
+
+        // 创建D3.js图表
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        // 创建D3力导向图
+        var simulation = d3.forceSimulation()
+            .nodes(knowledgeGraph.nodes)
+            .force("link", d3.forceLink(knowledgeGraph.links).id(function(d) { return d.id; }))
+            .force("charge", d3.forceManyBody().strength(-400))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        // 创建链接
+        var link = svg.selectAll(".link")
+            .data(knowledgeGraph.links)
+            .enter().append("line")
+            .attr("class", "link");
+
+        // 创建节点和节点标签
+        var node = svg.selectAll(".node")
+            .data(knowledgeGraph.nodes)
+            .enter().append("circle")
+            .attr("class", "node")
+            .attr("r", function(d) {
+                // 根据节点的类别属性设置不同的颜色
+                if (d.label === "Category") {
+                    return 24;
+                } else if (d.label === "ProtectionUnit") {
+                    return 16;
+                } else if (d.label === "RegionOrUnit") {
+                    return 16;
+                } else {
+                    return 20; // 默认颜色
+                }
+            })
+            .style("fill", function(d) {
+                // 根据节点的类别属性设置不同的颜色
+                if (d.label === "Category") {
+                    return "blue";
+                } else if (d.label === "ProtectionUnit") {
+                    return "green";
+                } else if (d.label === "RegionOrUnit") {
+                    return "orange";
+                } else {
+                    return "red"; // 默认颜色
+                }
+            })
+
+
+            .attr("draggable", "true") // 启用拖拽功能
+            .call(d3.drag() // 创建拖拽行为
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+        var label = svg.selectAll(".label")
+            .data(knowledgeGraph.nodes)
+            .enter().append("text")
+            .attr("class", "label")
+            .text(function(d) { return d.id; })
+            .style("font-size", function(d) {
+                // 根据节点的类别设置不同的字体大小
+                if (d.label === "Category") {
+                    return "24px";
+                } else if (d.label === "ProtectionUnit") {
+                    return "8px";
+                } else if (d.label === "RegionOrUnit") {
+                    return "8px";
+                } else {
+                    return "18px"; // 默认颜色
+                }
+            });
+
+        // 拖拽开始时的处理函数
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        // 拖拽中的处理函数
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        // 拖拽结束时的处理函数
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // 更新节点和链接的位置
+        simulation.on("tick", function() {
+            link
+                .attr("x1", function(d) { return d.source.x; })
+                .attr("y1", function(d) { return d.source.y; })
+                .attr("x2", function(d) { return d.target.x; })
+                .attr("y2", function(d) { return d.target.y; });
+
+            node
+                .attr("cx", function(d) { return d.x; })
+                .attr("cy", function(d) { return d.y; });
+
+            label
+                .attr("x", function(d) { return d.x + 15; })
+                .attr("y", function(d) { return d.y; });
+        });
+    </script>
+</body>
 </html>
