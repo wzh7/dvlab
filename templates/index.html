@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>世界非遗知识图谱</title>
     <style>
+        /* Title */
+        #top-title {
+            text-align: center; 
+        }
+
         /* 在CSS中设置左右布局 */
         .container {
             display: flex; /* 使用flex布局 */
@@ -112,7 +117,7 @@
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">世界非遗知识图谱</h1>
+    <h1 id="top-title">世界非遗知识图谱</h1>
     <div class="container">
         <div class="svg-container">
             <svg width="1000" height="600"></svg>
@@ -128,6 +133,7 @@
         </div>        
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
 
         // 获取聊天窗口相关元素
@@ -185,6 +191,41 @@
 
         // ===================================== 知识图谱部分 ====================================== //
 
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // 监听服务器发送的 data_updated 事件
+        socket.on('data_updated', function(newData) {
+            // 更新页面上的知识图谱数据
+            updateGraph(newData);
+        });
+
+
+        function updateGraph(data) {
+            // 在这里更新 D3.js 图表的数据和布局
+            // 你需要编写代码来更新节点、链接、文本等
+            // 例如，你可以重新绑定数据并更新位置
+            
+            // 更新节点数据
+            node = node.data(data.nodes);
+
+            // 更新链接数据
+            link = link.data(data.links);
+
+            // 更新节点和链接的属性
+
+            // ...
+
+            // 更新节点、链接和文本的位置
+
+            // ...
+
+            // 执行 D3.js 图表的布局更新
+            simulation.nodes(data.nodes);
+            simulation.force("link").links(data.links);
+            simulation.alpha(1).restart();
+        }
+
+
         // 从Flask传递的知识图谱数据
         var knowledgeGraph = {{ knowledge_graph | tojson | safe }};
 
@@ -197,8 +238,12 @@
         var simulation = d3.forceSimulation()
             .nodes(knowledgeGraph.nodes)
             .force("link", d3.forceLink(knowledgeGraph.links).id(function(d) { return d.id; }))
-            .force("charge", d3.forceManyBody().strength(-400))
-            .force("center", d3.forceCenter(width / 2, height / 2));
+            .force("charge", d3.forceManyBody().strength(-400)) // 增加正斥力的强度
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("link", d3.forceLink(knowledgeGraph.links).id(function(d) { return d.id; }).distance(100)) // 增加弹簧力的距离
+            .force("center", d3.forceCenter(width / 2, height / 2).strength(0.05)) // 增加中心引力的强度
+            .alphaDecay(0.02) // 调整阻尼值，通常取值范围在0到1之间
+            .velocityDecay(0.4); // 适当调整速度衰减
 
         // 创建链接
         var link = svg.selectAll(".link")
@@ -226,16 +271,15 @@
             .style("fill", function(d) {
                 // 根据节点的类别属性设置不同的颜色
                 if (d.label === "Category") {
-                    return "blue";
+                    return "#FF5733";
                 } else if (d.label === "ProtectionUnit") {
-                    return "green";
+                    return "#AA33FF";
                 } else if (d.label === "RegionOrUnit") {
-                    return "orange";
+                    return "#77D970";
                 } else {
-                    return "red"; // 默认颜色
+                    return "#33A1DE"; // 默认颜色
                 }
             })
-
 
             .attr("draggable", "true") // 启用拖拽功能
             .call(d3.drag() // 创建拖拽行为
